@@ -1155,7 +1155,7 @@ do
         uiListLayout.Padding = UDim.new(0, 10)
         uiListLayout.Parent = frame4
         textButton2 = Instance.new("TextButton")
-        textButton2.Size = UDim2.new(0.3333333333333333, -5, 1, 0)
+        textButton2.Size = UDim2.new(0.33333333333333331, -5, 1, 0)
         textButton2.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
         textButton2.BorderSizePixel = 0
         textButton2.Text = "Hop Server"
@@ -1178,7 +1178,7 @@ do
         end)
 
         local textButton3 = Instance.new("TextButton")
-        textButton3.Size = UDim2.new(0.3333333333333333, -5, 1, 0)
+        textButton3.Size = UDim2.new(0.33333333333333331, -5, 1, 0)
         textButton3.BackgroundColor3 = Color3.fromRGB(220, 90, 100)
         textButton3.BorderSizePixel = 0
         textButton3.Text = "Render: Off"
@@ -1220,7 +1220,7 @@ do
         fn5(getgenv().renderEnabled ~= nil and getgenv().renderEnabled or false)
 
         local textButton4 = Instance.new("TextButton")
-        textButton4.Size = UDim2.new(0.3333333333333333, -5, 1, 0)
+        textButton4.Size = UDim2.new(0.33333333333333331, -5, 1, 0)
         textButton4.BackgroundColor3 = Color3.fromRGB(220, 90, 100)
         textButton4.BorderSizePixel = 0
         textButton4.Text = "Auto Exec: Off"
@@ -1853,7 +1853,7 @@ do
                                         v3.Priority = Enum.AnimationPriority.Action4
                                         v3:Play()
                                         v3:AdjustSpeed(0)
-                                        v3:AdjustWeight(2000000000)
+                                        v3:AdjustWeight(2e9)
                                 end
 
                                 v6 = v3
@@ -2088,8 +2088,8 @@ do
                         Lighting.Brightness = 0.8
                         Lighting.ExposureCompensation = -0.2
                         local v6 = Lighting
-                        Lighting.FogStart = 9000000000
-                        v6.FogEnd = 9000000000
+                        Lighting.FogStart = 9e9
+                        v6.FogEnd = 9e9
 
                         for _, child in ipairs(Lighting:GetChildren()) do
                                 if child:IsA("PostEffect") or child:IsA("SunRaysEffect") then
@@ -2280,7 +2280,7 @@ do
                                         task.spawn(function()
                                                 while true do
                                                         flag12 = true
-                                                        getgenv().desync = { CFrame = CFrame.new(9000000000, 9000000000, 9000000000) }
+                                                        getgenv().desync = { CFrame = CFrame.new(9e9, 9e9, 9e9) }
                                                         task.wait()
                                                         if not (descendant.Parent ~= arg or humanoid2.Health <= 0) then
                                                                 continue
@@ -4043,7 +4043,7 @@ do
                                 if arg3.WeightTarget == 0 or arg3.Speed == 0 then
                                         return
                                 end
-                                local cframe = CFrame.new(9000000000, 9000000000, 9000000000)
+                                local cframe = CFrame.new(9e9, 9e9, 9e9)
                                 local v3 = character
                                 local humanoid2
 
@@ -4348,7 +4348,7 @@ do
                                         local position = humanoidRootPart.Position
 
                                         if (fn22() - position).Magnitude <= 25 then
-                                                getgenv().desync = { CFrame = CFrame.new(9000000000, 9000000000, 9000000000) }
+                                                getgenv().desync = { CFrame = CFrame.new(9e9, 9e9, 9e9) }
                                                 task.wait(0.75)
                                                 getgenv().desync = nil
                                         end
@@ -4438,7 +4438,7 @@ do
                                         local position = humanoidRootPart.Position
 
                                         if (fn22() - position).Magnitude <= 50 then
-                                                getgenv().desync = { CFrame = CFrame.new(9000000000, 9000000000, 9000000000) }
+                                                getgenv().desync = { CFrame = CFrame.new(9e9, 9e9, 9e9) }
                                         end
 
                                         task.wait(0.5)
@@ -4587,7 +4587,7 @@ do
                                                         part.CFrame = humanoidRootPart.CFrame
 
                                                         if flag11 and not fn18(humanoid, "15128849047") then
-                                                                getgenv().desync = { CFrame = CFrame.new(9000000000, 9000000000, 9000000000) }
+                                                                getgenv().desync = { CFrame = CFrame.new(9e9, 9e9, 9e9) }
                                                         else
                                                                 getgenv().desync = nil
                                                         end
@@ -4732,7 +4732,7 @@ do
                                                 local position = humanoidRootPart.Position
 
                                                 if (fn22() - position).Magnitude <= 15 then
-                                                        getgenv().desync = { CFrame = CFrame.new(9000000000, 9000000000, 9000000000) }
+                                                        getgenv().desync = { CFrame = CFrame.new(9e9, 9e9, 9e9) }
                                                 end
 
                                                 local dotted = workspace.Thrown:WaitForChild("Dotted", 1)
@@ -5108,7 +5108,7 @@ do
 
                                         while true do
                                                 if flag11 and not fn20(humanoid2) then
-                                                        getgenv().desync = { CFrame = CFrame.new(9000000000, 9000000000, 9000000000) }
+                                                        getgenv().desync = { CFrame = CFrame.new(9e9, 9e9, 9e9) }
                                                 else
                                                         getgenv().desync = nil
                                                 end
@@ -5135,8 +5135,8 @@ do
                                         if arg3.IsPlaying then
                                                 local tbl6 = {}
                                                 local tbl7 = {}
-                                                local n9 = CFrame.new(50, 0, -200) * CFrame.Angles(0, -0.2617993877991494, 0)
-                                                local n10 = CFrame.new(-50, 0, -200) * CFrame.Angles(0, 0.2617993877991494, 0)
+                                                local n9 = CFrame.new(50, 0, -200) * CFrame.Angles(0, -0.26179938779914941, 0)
+                                                local n10 = CFrame.new(-50, 0, -200) * CFrame.Angles(0, 0.26179938779914941, 0)
                                                 local cframe2 = CFrame.new
                                                 tbl7[1] = n9
                                                 tbl7[2] = n10
@@ -5175,7 +5175,7 @@ do
 
                                                 while true do
                                                         if flag11 and not fn20(humanoid2) then
-                                                                getgenv().desync = { CFrame = CFrame.new(9000000000, 9000000000, 9000000000) }
+                                                                getgenv().desync = { CFrame = CFrame.new(9e9, 9e9, 9e9) }
                                                         else
                                                                 getgenv().desync = nil
                                                         end
@@ -5208,8 +5208,8 @@ do
                                         end
                                         local tbl6 = {}
                                         local tbl7 = {}
-                                        local n9 = CFrame.new(60, 0, -250) * CFrame.Angles(0, -0.2617993877991494, 0)
-                                        local n10 = CFrame.new(-60, 0, -250) * CFrame.Angles(0, 0.2617993877991494, 0)
+                                        local n9 = CFrame.new(60, 0, -250) * CFrame.Angles(0, -0.26179938779914941, 0)
+                                        local n10 = CFrame.new(-60, 0, -250) * CFrame.Angles(0, 0.26179938779914941, 0)
                                         local cframe2 = CFrame.new
                                         tbl7[1] = n9
                                         tbl7[2] = n10
@@ -5252,7 +5252,7 @@ do
                                                 end
 
                                                 if tbl8[1] or tbl8[2] or tbl8[3] then
-                                                        getgenv().desync = { CFrame = CFrame.new(9000000000, 9000000000, 9000000000) }
+                                                        getgenv().desync = { CFrame = CFrame.new(9e9, 9e9, 9e9) }
                                                 else
                                                         getgenv().desync = nil
                                                 end
