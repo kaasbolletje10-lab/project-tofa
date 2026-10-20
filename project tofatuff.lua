@@ -3115,7 +3115,7 @@ do
                 local autoExecScript = ""
                 if getgenv().autoExecEnabled then
                         autoExecScript = [[task.wait(5)
-loadstring(game:HttpGet("https://raw.githubusercontent.com/kaasbolletje10-lab/project-tofa/refs/heads/main/project%20tofa.lua"))()]]
+loadstring(game:HttpGet("https://raw.githubusercontent.com/kaasbolletje10-lab/project-tofa/refs/heads/main/project%20tofatuff.lua"))()]]
                 end
                 local str = string.format([[getgenv().TimeFarmed=%d
 getgenv().SavedCarriedKills=%d
