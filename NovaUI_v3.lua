@@ -49,10 +49,21 @@ local Theme = {
         Info = Color3.fromRGB(80, 170, 255),
 }
 
-local BG_MODES = {"Particles", "Starfield", "Grid", "Bubbles", "Snow", "Waves", "Fireplace", "Off"}
+local BG_MODES = {"Particles", "Starfield", "Grid", "Bubbles", "Snow", "Waves", "Lava", "Off"}
 
 -- Registry of all open windows (so SetBGMode can refresh them all)
 local openWindows = {}
+
+-- Returns a lighter/brighter version of the accent color for BG effects.
+-- `amount` 0-1, higher = lighter.
+local function lighterAccent(amount)
+        amount = amount or 0.3
+        local c = Theme.Accent
+        local r = math.min(255, math.floor(c.R * 255 + (255 - c.R * 255) * amount)) / 255
+        local g = math.min(255, math.floor(c.G * 255 + (255 - c.G * 255) * amount)) / 255
+        local b = math.min(255, math.floor(c.B * 255 + (255 - c.B * 255) * amount)) / 255
+        return Color3.new(r, g, b)
+end
 
 ------------------------------------------------------------------ HELPERS
 local accentBound = {}
@@ -236,15 +247,16 @@ function BGEffects.Grid(fx)
                 }),
                 Parent = grid,
         })
-        -- Draw grid lines using frames
+        -- Draw grid lines using frames (lighter accent for visibility)
+        local lineColor = lighterAccent(0.25)
         for i = 0, 20 do
                 new("Frame", {
                         Size = UDim2.new(1, 0, 0, 1), Position = UDim2.fromScale(0, i / 20),
-                        BackgroundColor3 = Theme.Accent, BackgroundTransparency = 0.85, BorderSizePixel = 0, Parent = grid,
+                        BackgroundColor3 = lineColor, BackgroundTransparency = 0.8, BorderSizePixel = 0, Parent = grid,
                 })
                 new("Frame", {
                         Size = UDim2.new(0, 1, 1, 0), Position = UDim2.fromScale(i / 20, 0),
-                        BackgroundColor3 = Theme.Accent, BackgroundTransparency = 0.85, BorderSizePixel = 0, Parent = grid,
+                        BackgroundColor3 = lineColor, BackgroundTransparency = 0.8, BorderSizePixel = 0, Parent = grid,
                 })
         end
         task.spawn(function()
@@ -262,12 +274,13 @@ end
 
 function BGEffects.Bubbles(fx)
         local bubbles = {}
+        local bubbleColor = lighterAccent(0.35)
         for _ = 1, 15 do
                 local size = math.random(8, 24)
                 local b = new("Frame", {
                         Size = UDim2.fromOffset(size, size),
                         Position = UDim2.fromScale(math.random(), 1.2),
-                        BackgroundColor3 = Theme.Accent, BackgroundTransparency = 0.85,
+                        BackgroundColor3 = bubbleColor, BackgroundTransparency = 0.8,
                         BorderSizePixel = 0, Parent = fx,
                 }, { new("UICorner", { CornerRadius = UDim.new(1, 0) }) })
                 table.insert(bubbles, b)
@@ -310,13 +323,15 @@ function BGEffects.Snow(fx)
 end
 
 function BGEffects.Waves(fx)
+        local waveColor1 = lighterAccent(0.3)
+        local waveColor2 = lighterAccent(0.5)
         local wave1 = new("Frame", {
                 Size = UDim2.fromScale(2, 0.5), Position = UDim2.fromScale(-0.5, 0.3),
-                BackgroundColor3 = Theme.Accent, BackgroundTransparency = 0.88, BorderSizePixel = 0, Parent = fx,
+                BackgroundColor3 = waveColor1, BackgroundTransparency = 0.85, BorderSizePixel = 0, Parent = fx,
         }, { new("UICorner", { CornerRadius = UDim.new(1, 0) }) })
         local wave2 = new("Frame", {
                 Size = UDim2.fromScale(2, 0.4), Position = UDim2.fromScale(-0.5, 0.6),
-                BackgroundColor3 = Theme.Accent2, BackgroundTransparency = 0.9, BorderSizePixel = 0, Parent = fx,
+                BackgroundColor3 = waveColor2, BackgroundTransparency = 0.88, BorderSizePixel = 0, Parent = fx,
         }, { new("UICorner", { CornerRadius = UDim.new(1, 0) }) })
         task.spawn(function()
                 while wave1.Parent do
@@ -333,24 +348,25 @@ function BGEffects.Waves(fx)
         return {wave1, wave2}
 end
 
-function BGEffects.Fireplace(fx)
-        -- Fireplace: warm gradient at the bottom + rising embers
+function BGEffects.Lava(fx)
+        -- Lava: warm gradient at the bottom + rising bubbles, tinted with accent color
+        local accentTint = lighterAccent(0.6)
         local gradFrame = new("Frame", {
                 Size = UDim2.fromScale(1, 0.5), Position = UDim2.fromScale(0, 0.55),
                 BackgroundTransparency = 0, BorderSizePixel = 0, Parent = fx,
         }, { new("UICorner", { CornerRadius = UDim.new(0, 0) }) })
-        -- Warm fire gradient (orange→red→transparent going up)
+        -- Lava gradient (bright orange→red→dark, blended with accent tint)
         local grad = new("UIGradient", {
                 Rotation = 90,
                 Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 100, 30)),
-                        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 60, 20)),
-                        ColorSequenceKeypoint.new(0.7, Color3.fromRGB(180, 30, 10)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 10, 5)),
+                        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 120, 40):Lerp(accentTint, 0.3)),
+                        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 70, 25):Lerp(accentTint, 0.3)),
+                        ColorSequenceKeypoint.new(0.7, Color3.fromRGB(180, 35, 12):Lerp(accentTint, 0.4)),
+                        ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 12, 5):Lerp(accentTint, 0.5)),
                 }),
                 Transparency = NumberSequence.new({
-                        NumberSequenceKeypoint.new(0, 0.3),
-                        NumberSequenceKeypoint.new(0.5, 0.5),
+                        NumberSequenceKeypoint.new(0, 0.25),
+                        NumberSequenceKeypoint.new(0.5, 0.45),
                         NumberSequenceKeypoint.new(1, 1),
                 }),
                 Parent = gradFrame,
@@ -404,7 +420,7 @@ local function applyBGEffect(self)
         end
         local mode = Config.BGMode
         if mode == 8 then return end  -- Off
-        local fn = ({BGEffects.Particles, BGEffects.Starfield, BGEffects.Grid, BGEffects.Bubbles, BGEffects.Snow, BGEffects.Waves, BGEffects.Fireplace})[mode]
+        local fn = ({BGEffects.Particles, BGEffects.Starfield, BGEffects.Grid, BGEffects.Bubbles, BGEffects.Snow, BGEffects.Waves, BGEffects.Lava})[mode]
         if fn then self.BGObjects = fn(self.FX) end
 end
 
@@ -438,10 +454,10 @@ function Library:CreateWindow(title)
                 State.Sounds[name] = new("Sound", { SoundId = SOUND_ID, Volume = p.Volume, PlaybackSpeed = p.Speed, Parent = gui })
         end
 
-        local main = new("CanvasGroup", {
+        local main = new("Frame", {
                 Name = "Main", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
                 Size = UDim2.fromOffset(820, 480), BackgroundColor3 = Theme.Background, BorderSizePixel = 0,
-                GroupTransparency = 1, Parent = gui,
+                BackgroundTransparency = 0, Parent = gui,
         }, { corner(14) })
         local scale = new("UIScale", { Scale = 0.85, Parent = main })
         local stroke = new("UIStroke", { Thickness = 1.5, Transparency = 0.45, Parent = main })
@@ -729,9 +745,8 @@ end
 function Window:Show()
         self.Visible = true
         self.Gui.Enabled = true
-        self.Main.GroupTransparency = 1
+        self.Main.Visible = true
         self.Scale.Scale = self.UserScale * 0.88
-        tween(self.Main, 0.35, { GroupTransparency = 0 })
         tween(self.Scale, 0.45, { Scale = self.UserScale }, Enum.EasingStyle.Back)
         sfx("Open")
 end
@@ -739,10 +754,12 @@ end
 function Window:Hide()
         self.Visible = false
         sfx("Close")
-        tween(self.Main, 0.25, { GroupTransparency = 1 })
         tween(self.Scale, 0.25, { Scale = self.UserScale * 0.9 })
         task.delay(0.27, function()
-                if not self.Visible and self.Gui.Parent then self.Gui.Enabled = false end
+                if not self.Visible and self.Gui.Parent then
+                        self.Main.Visible = false
+                        self.Gui.Enabled = false
+                end
         end)
 end
 
@@ -762,16 +779,18 @@ end
 
 function Window:Notify(title, body, duration)
         sfx("Select")
-        local t = new("CanvasGroup", { Size = UDim2.new(1, 0, 0, 58), BackgroundColor3 = Theme.Panel, BorderSizePixel = 0,
-                GroupTransparency = 1, Parent = self.Toasts }, { corner(10), new("UIStroke", { Color = Theme.Track, Thickness = 1 }) })
+        local t = new("Frame", { Size = UDim2.new(1, 0, 0, 58), BackgroundColor3 = Theme.Panel, BorderSizePixel = 0,
+                Parent = self.Toasts }, { corner(10), new("UIStroke", { Color = Theme.Track, Thickness = 1 }) })
         local bar = new("Frame", { Size = UDim2.new(0, 4, 1, 0), BorderSizePixel = 0, Parent = t })
         bindAccent(bar, "BackgroundColor3")
         text(t, title, { Size = UDim2.new(1, -24, 0, 22), Position = UDim2.fromOffset(16, 8), Font = Enum.Font.GothamBold })
         text(t, body, { Size = UDim2.new(1, -24, 0, 20), Position = UDim2.fromOffset(16, 29), TextSize = 12, TextColor3 = Theme.SubText })
-        tween(t, 0.3, { GroupTransparency = 0 })
+        -- Simple slide-in animation instead of GroupTransparency
+        t.Position = UDim2.new(1, 50, 0, 0)
+        tween(t, 0.3, { Position = UDim2.new(0, 0, 0, 0) }, Enum.EasingStyle.Quart)
         task.delay(duration or 3, function()
                 if t.Parent then
-                        tween(t, 0.3, { GroupTransparency = 1 })
+                        tween(t, 0.3, { Position = UDim2.new(1, 50, 0, 0) })
                         Debris:AddItem(t, 0.35)
                 end
         end)
@@ -902,7 +921,7 @@ function Window:CreateTab(name)
                 TextSize = 14, TextColor3 = Theme.SubText, AutoButtonColor = false, Parent = window.TabBar,
         }, { corner(8), new("UIPadding", { PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16) }) })
 
-        local holder = new("CanvasGroup", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Visible = false,
+        local holder = new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Visible = false,
                 Parent = window.Pages })
         local scroll = new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0,
                 ScrollBarThickness = 3, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = holder },
@@ -922,11 +941,9 @@ function Window:CreateTab(name)
                 holder.Visible = true
                 tween(button, 0.2, { BackgroundTransparency = 0, TextColor3 = Theme.Text })
                 if Config.VFX then
-                        holder.GroupTransparency = 1
                         holder.Position = UDim2.fromOffset(0, 18)
-                        tween(holder, 0.3, { GroupTransparency = 0, Position = UDim2.fromOffset(0, 0) }, Enum.EasingStyle.Quart)
+                        tween(holder, 0.3, { Position = UDim2.fromOffset(0, 0) }, Enum.EasingStyle.Quart)
                 else
-                        holder.GroupTransparency = 0
                         holder.Position = UDim2.fromOffset(0, 0)
                 end
                 window:MoveIndicator(button, #window.Tabs == 1 and window.FirstSelect == nil)
@@ -1154,6 +1171,64 @@ function Window:CreateTab(name)
                         s.MouseLeave:Connect(function() tween(s, 0.15, { Size = UDim2.fromOffset(24, 24) }) end)
                         s.MouseButton1Click:Connect(function() sfx("Select"); if callback then callback(c) end end)
                 end
+        end
+
+        -- Searchable command list: creates a search box + scrolling list of commands.
+        -- commands = { {cmd=".kill <name>", desc="Attack a player", callback=fn}, ... }
+        -- Returns the search box so the caller can update it if needed.
+        function tab:AddSearchableCommands(commands)
+                local searchBox = new("TextBox", {
+                        LayoutOrder = nextOrder(), Size = UDim2.new(1, 0, 0, 36),
+                        BackgroundColor3 = Theme.Background, Text = "", PlaceholderText = "🔍 Search commands...",
+                        PlaceholderColor3 = Theme.SubText, TextColor3 = Theme.Text, Font = Enum.Font.Gotham, TextSize = 13,
+                        ClearTextOnFocus = false, TextXAlignment = Enum.TextXAlignment.Left, Parent = scroll,
+                }, { corner(8), new("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12) }) })
+                local sStroke = new("UIStroke", { Color = Theme.Track, Thickness = 1, Parent = searchBox })
+                searchBox.Focused:Connect(function() sfx("Click"); tween(sStroke, 0.2, { Color = Theme.Accent }) end)
+                searchBox.FocusLost:Connect(function() tween(sStroke, 0.2, { Color = Theme.Track }) end)
+
+                -- Container for command rows
+                local listFrame = new("Frame", {
+                        LayoutOrder = nextOrder(), Size = UDim2.new(1, 0, 0, 0), BackgroundTransparency = 1, Parent = scroll,
+                        AutomaticSize = Enum.AutomaticSize.Y,
+                }, { new("UIListLayout", { Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder }) })
+
+                local rows = {}
+                for idx, cmdData in ipairs(commands) do
+                        local f = new("TextButton", {
+                                LayoutOrder = idx, Size = UDim2.new(1, 0, 0, 50),
+                                BackgroundColor3 = Theme.Element, Text = "", AutoButtonColor = false,
+                                ClipsDescendants = true, Parent = listFrame,
+                        }, { corner(8) })
+                        local bar = new("Frame", { Size = UDim2.new(0, 3, 1, 0), Position = UDim2.fromScale(0, 0), BorderSizePixel = 0, Parent = f })
+                        bindAccent(bar, "BackgroundColor3")
+                        text(f, cmdData.cmd, { Size = UDim2.new(1, -16, 0, 22), Position = UDim2.fromOffset(12, 6),
+                                Font = Enum.Font.GothamBold, TextSize = 13, TextTruncate = Enum.TextTruncate.AtEnd })
+                        text(f, cmdData.desc or "", { Size = UDim2.new(1, -16, 0, 18), Position = UDim2.fromOffset(12, 28),
+                                Font = Enum.Font.Gotham, TextSize = 11, TextColor3 = Theme.SubText, TextTruncate = Enum.TextTruncate.AtEnd })
+                        f.MouseEnter:Connect(function() sfx("Hover"); tween(f, 0.15, { BackgroundColor3 = Theme.ElementHover }) end)
+                        f.MouseLeave:Connect(function() tween(f, 0.15, { BackgroundColor3 = Theme.Element }) end)
+                        f.MouseButton1Click:Connect(function()
+                                sfx("Click"); ripple(f)
+                                if cmdData.callback then task.spawn(cmdData.callback) end
+                        end)
+                        rows[idx] = { frame = f, data = cmdData }
+                end
+
+                -- Search filter
+                searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+                        local q = string.lower(searchBox.Text)
+                        for _, r in ipairs(rows) do
+                                if q == "" then
+                                        r.frame.Visible = true
+                                else
+                                        local searchText = string.lower((r.data.cmd or "") .. " " .. (r.data.desc or ""))
+                                        r.frame.Visible = string.find(searchText, q, 1, true) ~= nil
+                                end
+                        end
+                end)
+
+                return searchBox
         end
 
         function tab:AddKeybind(label, default, callback)
