@@ -371,20 +371,20 @@ function BGEffects.Lava(fx)
                 }),
                 Parent = gradFrame,
         })
-        -- Flicker the gradient
+        -- Flicker the gradient (slower)
         task.spawn(function()
                 while gradFrame.Parent do
                         if Config.VFX then
-                                tween(gradFrame, 0.3, { Position = UDim2.fromScale(0, 0.52) }, Enum.EasingStyle.Sine)
-                                task.wait(0.3)
-                                tween(gradFrame, 0.25, { Position = UDim2.fromScale(0, 0.58) }, Enum.EasingStyle.Sine)
-                                task.wait(0.25)
-                                tween(gradFrame, 0.35, { Position = UDim2.fromScale(0, 0.55) }, Enum.EasingStyle.Sine)
-                                task.wait(0.35)
+                                tween(gradFrame, 1.2, { Position = UDim2.fromScale(0, 0.52) }, Enum.EasingStyle.Sine)
+                                task.wait(1.2)
+                                tween(gradFrame, 1.0, { Position = UDim2.fromScale(0, 0.58) }, Enum.EasingStyle.Sine)
+                                task.wait(1.0)
+                                tween(gradFrame, 1.4, { Position = UDim2.fromScale(0, 0.55) }, Enum.EasingStyle.Sine)
+                                task.wait(1.4)
                         else task.wait(1) end
                 end
         end)
-        -- Rising embers
+        -- Rising embers (slower)
         local embers = {}
         for _ = 1, 25 do
                 local size = math.random(2, 5)
@@ -400,13 +400,13 @@ function BGEffects.Lava(fx)
                         while e.Parent do
                                 if Config.VFX then
                                         e.Position = UDim2.fromScale(math.random(), 1.1)
-                                        local dur = math.random(3, 7)
+                                        local dur = math.random(6, 12)
                                         tween(e, dur, {
                                                 Position = UDim2.fromScale(math.random() * 0.3 + 0.35, 0.4),
                                                 BackgroundTransparency = 1,
                                         }, Enum.EasingStyle.Linear)
                                 end
-                                task.wait(math.random(3, 7))
+                                task.wait(math.random(6, 12))
                         end
                 end)
         end
@@ -427,7 +427,7 @@ end
 ------------------------------------------------------------------ WINDOW
 function Library:CreateWindow(title)
         local self = setmetatable({ Tabs = {}, Active = nil, Connections = {}, Visible = true,
-                Listening = false, ToggleKey = Enum.KeyCode.RightShift, UserScale = 1, Minimized = false,
+                Listening = false, ToggleKey = Enum.KeyCode.T, UserScale = 1, Minimized = false,
                 StandProvider = nil, CommandHandler = nil, SelectedStands = {}, StandPickerOpen = false }, Window)
 
         -- Register this window so SetBGMode can refresh it
@@ -465,7 +465,7 @@ function Library:CreateWindow(title)
         self.Main, self.Scale = main, scale
 
         -- FX layer
-        local fx = new("Frame", { Name = "FX", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ZIndex = 1, Parent = main })
+        local fx = new("Frame", { Name = "FX", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ClipsDescendants = true, ZIndex = 1, Parent = main })
         self.FX = fx
         self.BGObjects = {}
         applyBGEffect(self)
@@ -636,6 +636,14 @@ function Window:UpdateStandBall()
                 local ok, result = pcall(self.StandProvider)
                 if ok and type(result) == "table" then stands = result end
         end
+        -- Preserve selection state across updates (keyed by player name)
+        if not self._standSelection then self._standSelection = {} end
+        for _, s in ipairs(stands) do
+                local key = s.player and s.player.Name or s.name or ""
+                if key ~= "" then
+                        s.selected = self._standSelection[key] or false
+                end
+        end
         self.Stands = stands
         local count = #stands
         if count == 0 then
@@ -648,7 +656,7 @@ function Window:UpdateStandBall()
                 self.StandBall.BackgroundColor3 = Theme.Success
                 local selectedCount = 0
                 for _, s in ipairs(stands) do
-                        if s.selected then selectedCount += 1 end
+                        if s.selected then selectedCount = selectedCount + 1 end
                 end
                 if selectedCount > 0 then
                         self.StandCountLbl.Text = tostring(count) .. "/" .. tostring(selectedCount)
@@ -720,6 +728,12 @@ function Window:OpenStandPicker()
                 r.MouseButton1Click:Connect(function()
                         sfx("Select"); ripple(r)
                         stand.selected = not stand.selected
+                        -- Persist selection by player name
+                        local key = stand.player and stand.player.Name or stand.name or ""
+                        if key ~= "" then
+                                if not self._standSelection then self._standSelection = {} end
+                                self._standSelection[key] = stand.selected
+                        end
                         orb.BackgroundColor3 = stand.selected and Theme.Success or Theme.Danger
                         if stand.onToggle then stand.onToggle(stand.selected) end
                         self:UpdateStandBall()
@@ -922,10 +936,12 @@ function Window:CreateTab(name)
         }, { corner(8), new("UIPadding", { PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16) }) })
 
         local holder = new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Visible = false,
-                Parent = window.Pages })
+                ClipsDescendants = true, Parent = window.Pages })
         local scroll = new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0,
-                ScrollBarThickness = 3, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = holder },
-                { new("UIPadding", { PaddingTop = UDim.new(0, 14), PaddingBottom = UDim.new(0, 14),
+                ClipsDescendants = true, ScrollBarThickness = 4, ScrollBarImageColor3 = Theme.Track,
+                CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                ScrollingDirection = Enum.ScrollingDirection.Y, Parent = holder },
+                { new("UIPadding", { PaddingTop = UDim.new(0, 14), PaddingBottom = UDim.new(0, 20),
                         PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16) }),
                   new("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }) })
 
