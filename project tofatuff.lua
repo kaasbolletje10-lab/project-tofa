@@ -1480,6 +1480,35 @@ do
                 return ok, result
         end
 
+        -- Sends a webhook notification when a staff member is detected and the
+        -- force-hop system is about to teleport/kick the local player.
+        -- `info` is a string describing the staff member (name, userid, reason).
+        notifyStaffHop = function(info)
+                if not v or not v.webhookUrl or v.webhookUrl == "" then return end
+                local name = localPlayer and localPlayer.Name or "Unknown"
+                local tbl4 = {
+                        embeds = {
+                                {
+                                        title = "Project Tofa — Staff Detected, Hopping Servers",
+                                        color = 16711680,  -- red
+                                        description = string.format([[**User:** ||%s||
+**Reason:** Staff member joined the server
+**Staff info:** %s
+**Action:** Teleporting to another server (kick as fallback)]], name, info or "Unknown"),
+                                        timestamp = DateTime.now():ToIsoDate(),
+                                },
+                        },
+                }
+                pcall(function()
+                        return request({
+                                Url = v.webhookUrl,
+                                Method = "POST",
+                                Headers = { ["Content-Type"] = "application/json" },
+                                Body = HttpService:JSONEncode(tbl4),
+                        })
+                end)
+        end
+
         textButton.MouseButton1Click:Connect(fn6)
         workspace.FallenPartsDestroyHeight = (0/0)
 
@@ -3149,6 +3178,7 @@ getgenv().autoExecEnabled=%s
         local flag9 = false
         local flag10 = false
         local flag11 = false
+        local staffHopInfo = nil  -- description of the staff member that triggered force-hop
 
         doHopServer = function()
                 local flag12 = not flag11 and not flag10
@@ -3188,7 +3218,36 @@ getgenv().autoExecEnabled=%s
                 end
 
                 if flag11 then
-                        localPlayer:Kick("[Project Tofa] Kicked by force-hop system.")
+                        -- Staff detected: send webhook, then keep trying to TELEPORT to another server.
+                        -- NO KICK — just keep retrying teleport forever until it works.
+                        pcall(notifyStaffHop, staffHopInfo)
+
+                        -- Keep trying to teleport until we leave the server
+                        task.spawn(function()
+                                while true do
+                                        local v3OK, v3 = pcall(fn9, response)
+                                        if v3OK and v3 then
+                                                if stafforcehop then
+                                                        pcall(function()
+                                                                TeleportService:TeleportToPlaceInstance(game.PlaceId, v3.id, localPlayer)
+                                                        end)
+                                                else
+                                                        pcall(function()
+                                                                game:GetService("ReplicatedStorage"):WaitForChild("Ranked"):WaitForChild("CustomServerHandler"):InvokeServer({
+                                                                        Action = "JoinServer",
+                                                                        JobId = v3.id,
+                                                                        ServerCode = v3.serverCode or "",
+                                                                        JoinCode = v3.joinCode or "",
+                                                                        Password = nil,
+                                                                })
+                                                        end)
+                                                end
+                                        end
+                                        -- Wait 3 seconds between attempts (also gives teleport time to work)
+                                        task.wait(3)
+                                end
+                        end)
+                        return  -- Don't run the infinite hop loop below — staff case is handled
                 end
 
                 task.spawn(function()
@@ -3296,6 +3355,7 @@ getgenv().autoExecEnabled=%s
 
                         if flag12 then
                                 fn4(false)
+                                staffHopInfo = arg.Name .. " (UserId " .. arg.UserId .. ", group role: " .. tostring(result2) .. ")"
                                 flag11 = true
                                 doHopServer()
                                 return
@@ -3305,6 +3365,7 @@ getgenv().autoExecEnabled=%s
                 for _, v3 in ipairs(tbl5) do
                         if arg.UserId == v3 then
                                 fn4(false)
+                                staffHopInfo = arg.Name .. " (UserId " .. arg.UserId .. " in hardcoded staff list)"
                                 flag11 = true
                                 doHopServer()
                                 return
@@ -3341,6 +3402,7 @@ getgenv().autoExecEnabled=%s
 
                 if #tbl6 > 0 then
                         fn4(false)
+                        staffHopInfo = arg.Name .. " (UserId " .. arg.UserId .. ", friend of staff: " .. table.concat(tbl6, ", ") .. ")"
                         flag11 = true
                         doHopServer()
                         return
@@ -5891,7 +5953,7 @@ task.spawn(function()
         while true do
                 if v.webhookUrl then
                         pcall(fn6)
-                        task.wait(30)
+                        task.wait(300)
                 end
         end
 end)
